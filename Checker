@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>客室チェックリスト</title>
+
+  <!-- スマホの文字サイズ設定を尊重 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- React / Babel / Tailwind -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function RoomChecklistApp() {
+      const floors = Array.from({ length: 27 - 14 + 1 }, (_, i) => 14 + i);
+      const rooms = Array.from({ length: 23 }, (_, i) => i + 1);
+
+      const defaultCategories = {
+        "クローゼット": [
+          { id: "closet_shoesc", label: "シューズクリーナーとスリッパが揃っているか" }
+        ],
+        "ミニバー": [
+          { id: "mini_water", label: "未開封の水が入っているか" },
+          { id: "mini_coffee", label: "コーヒードリップが入っているか" },
+          { id: "mini_sugar", label: "シュガーが入っているか" },
+          { id: "mini_tea", label: "緑茶が入っているか" },
+          { id: "mini_glass", label: "グラスやマグカップの汚れがないか" },
+          { id: "mini_icepail", label: "アイスペールに水が入っていないか" },
+          { id: "mini_kettle", label: "ケトルに水が入っていないか" }
+        ],
+        "ライティングデスク": [
+          { id: "desk_mirror", label: "鏡の汚れと埃を確認" },
+          { id: "desk_laundrybag", label: "引き出しにランドリーバッグがあるか" },
+          { id: "desk_tissue", label: "ティッシュが減っていないか" },
+          { id: "desk_trash", label: "ゴミ箱にゴミが入っていないか" },
+          { id: "desk_tv", label: "テレビがNHKにセットされているか" },
+          { id: "desk_forget", label: "引き出しに忘れ物がないか" }
+        ],
+        "窓": [
+          { id: "window_fingerprint", label: "窓に指紋がついていないか" },
+          { id: "table_clean", label: "ティーテーブルに汚れがないか" },
+          { id: "humidifier_auto", label: "加湿器が自動にセットされているか" }
+        ],
+        "ベッド": [
+          { id: "bed_wrinkle", label: "ベッドにシワがないか" },
+          { id: "bed_hair", label: "ベッドに髪の毛がないか" },
+          { id: "bed_stain", label: "ベッドに汚れやシミがないか" },
+          { id: "bed_gown", label: "ガウンが置いてあるか" },
+          { id: "bed_under", label: "ベッド下に忘れ物がないか" }
+        ],
+        "バスルーム": [
+          { id: "bath_mirror", label: "姿見に汚れがないか" },
+          { id: "bath_shower_mirror", label: "お風呂の鏡に指紋がないか" },
+          { id: "bath_towels", label: "タオルが揃っているか" },
+          { id: "bath_towels_dry", label: "タオルが濡れていないか" },
+          { id: "bath_amenity", label: "アメニティに破れがないか" },
+          { id: "bath_tub", label: "浴槽内に髪の毛や汚れがないか" },
+          { id: "bath_shower_curtain", label: "シャワーカーテンの確認" },
+          { id: "bath_toilet_lid_back", label: "トイレのフタの裏の確認" },
+          { id: "bath_toilet_seat_back", label: "便座の裏の確認" },
+          { id: "bath_toilet_clean", label: "トイレに汚れがないか" },
+          { id: "bath_recycle", label: "ゴミ箱・リサイクルボックスにゴミがないか" }
+        ],
+        "最終確認": [
+          { id: "final_floor", label: "床にゴミが落ちていないか" },
+          { id: "final_donebtn", label: "清掃完了の確認ボタンを押したか" }
+        ]
+      };
+
+      const [floor, setFloor] = useState(floors[0]);
+      const [room, setRoom] = useState(rooms[0]);
+
+      const [checks, setChecks] = useState(() => {
+        const flat = {};
+        Object.values(defaultCategories).flat().forEach(i => flat[i.id] = false);
+        return flat;
+      });
+
+      function toggle(id) {
+        setChecks(prev => ({ ...prev, [id]: !prev[id] }));
+      }
+
+      function toggleCategory(cat) {
+        const items = defaultCategories[cat];
+        const anyUnchecked = items.some(i => !checks[i.id]);
+        const next = { ...checks };
+        items.forEach(i => next[i.id] = anyUnchecked);
+        setChecks(next);
+      }
+
+      return (
+        <div className="p-6 max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">客室チェックリスト</h1>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label>階数</label>
+              <select value={floor} onChange={e => setFloor(+e.target.value)} className="mt-1 p-2 border rounded w-full">
+                {floors.map(f => <option key={f} value={f}>{f}階</option>)}
+              </select>
+            </div>
+            <div>
+              <label>部屋番号</label>
+              <select value={room} onChange={e => setRoom(+e.target.value)} className="mt-1 p-2 border rounded w-full">
+                {rooms.map(r => <option key={r} value={r}>{r}号室</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {Object.entries(defaultCategories).map(([cat, items]) => (
+              <div key={cat} className="p-4 bg-white rounded shadow">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold">{cat}</h2>
+                  <button onClick={() => toggleCategory(cat)} className="px-3 py-1 border rounded">
+                    一括切替
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {items.map(item => (
+                    <label key={item.id} className="flex items-center gap-2 p-2 border rounded">
+                      <input type="checkbox" checked={checks[item.id]} onChange={() => toggle(item.id)} />
+                      <span>{item.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 text-gray-500">
+            このアプリは端末の文字サイズ・フォント設定をそのまま使用します。
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(
+  <RoomChecklistApp />,
+  document.getElementById("root")
+);
+  </script>
+</body>
+</html>
